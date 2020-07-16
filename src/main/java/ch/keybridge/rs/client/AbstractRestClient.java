@@ -85,6 +85,10 @@ public class AbstractRestClient {
    * 5 seconds.
    */
   private int timoutRead;
+  /**
+   * If client logging should be enabled. Default is try.
+   */
+  private boolean logging = true;
 
   public AbstractRestClient() {
     this.timoutConnect = TIMEOUT_CONNECT;
@@ -94,6 +98,15 @@ public class AbstractRestClient {
   public AbstractRestClient(int timoutConnect, int timoutRead) {
     this.timoutConnect = timoutConnect;
     this.timoutRead = timoutRead;
+  }
+
+  /**
+   * Set the client logging status. Default is true.
+   *
+   * @param logging the client logging status
+   */
+  public void setLogging(boolean logging) {
+    this.logging = logging;
   }
 
   /**
@@ -124,10 +137,9 @@ public class AbstractRestClient {
    * timeout is 1 second (down from the default of 60) and the read timeout is 5
    * seconds (also down from 60).
    *
-   * @param logging indicator that the logging filter should be enabled.
    * @return a Jersey HTTP client
    */
-  protected Client buildClient(boolean logging) {
+  protected Client buildClient() {
     /**
      * Internal method to build a simple web-target attached to the
      * WEBSERVICE_BASE. The connect and read timeout are set.
@@ -204,7 +216,7 @@ public class AbstractRestClient {
         .get(String.class);
       return true;
     } catch (Exception e) {
-      LOG.log(Level.WARNING, "{0} is not available. {1}", new Object[]{baseUri, e.getMessage()});
+      LOG.log(Level.WARNING, "{0}/application.wadl is not available.  {1}", new Object[]{baseUri, e.getMessage()});
       return false;
     }
   }
