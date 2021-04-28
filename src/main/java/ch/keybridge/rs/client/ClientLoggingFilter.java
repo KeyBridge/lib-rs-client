@@ -1,3 +1,4 @@
+
 /*
  * Copyright 2015 Caulfield IP Holdings (Caulfield) and affiliates.
  * All rights reserved. Use is subject to license terms.
@@ -31,6 +32,8 @@ import javax.ws.rs.client.ClientResponseFilter;
  * @author Key Bridge LLC
  * @see
  * <a href="https://jax-rs-spec.java.net/nonav/2.0/apidocs/javax/ws/rs/core/Configurable.html">Configurable</a>
+ * @see
+ * <a href="https://raw.githubusercontent.com/eclipse-ee4j/jaxrs-api/master/jaxrs-api/src/main/java/jakarta/ws/rs/core/Configurable.java">Configurable</a>
  * @since 1.2.0 snapshot created 11/04/15
  */
 public class ClientLoggingFilter implements ClientRequestFilter, ClientResponseFilter {
