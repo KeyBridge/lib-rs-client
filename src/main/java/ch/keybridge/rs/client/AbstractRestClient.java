@@ -47,7 +47,7 @@ public class AbstractRestClient {
    * <p>
    * CONNECT_TIMEOUT = "jersey.config.client.connectTimeout";
    */
-  public static final String READ_TIMEOUT = "jersey.config.client.readTimeout";
+  protected static final String READ_TIMEOUT = "jersey.config.client.readTimeout";
   /**
    * Read timeout interval, in milliseconds. The value MUST be an instance
    * convertible to Integer. A value of zero (0) is equivalent to an interval of
@@ -57,7 +57,7 @@ public class AbstractRestClient {
    * <p>
    * READ_TIMEOUT = "jersey.config.client.readTimeout";
    */
-  public static final String CONNECT_TIMEOUT = "jersey.config.client.connectTimeout";
+  protected static final String CONNECT_TIMEOUT = "jersey.config.client.connectTimeout";
   /**
    * 1,000 milliseconds = 1 seconds.
    * <p>
@@ -65,7 +65,7 @@ public class AbstractRestClient {
    * convertible to Integer. A value of zero (0) is equivalent to an interval of
    * infinity. The default value is infinity (0).
    */
-  private static final int TIMEOUT_CONNECT = 1000;
+  protected static final int TIMEOUT_CONNECT = 1000;
   /**
    * 5,000 milliseconds = 5 seconds.
    * <p>
@@ -73,29 +73,58 @@ public class AbstractRestClient {
    * convertible to Integer. A value of zero (0) is equivalent to an interval of
    * infinity. The default value is infinity (0).
    */
-  private static final int TIMEOUT_READ = 5000;
+  protected static final int TIMEOUT_READ = 5000;
 
   /**
    * The Connect timeout interval, in milliseconds. Default is 1,000
    * milliseconds = 1 seconds.
    */
-  private int timoutConnect;
+  protected int timoutConnect;
   /**
    * The Read timeout interval, in milliseconds. Default is 5,000 milliseconds =
    * 5 seconds.
    */
-  private int timoutRead;
+  protected int timoutRead;
   /**
    * If client logging should be enabled. Default is try.
    */
-  private boolean logging = true;
+  protected boolean logging = true;
 
-  public AbstractRestClient() {
+  /**
+   * The web service base URI pattern.
+   * <p>
+   * Developer note: This is the fully qualified REST resource context root
+   * formatted as {@code [schema]://[host][:port]/[path]}
+   * <p>
+   * For example If your application exposes REST resources under the
+   * 'webresource' path, then this baseUri should read
+   * {@code http://host.example.com/contextroot/webresource}
+   */
+  protected String baseUri;
+
+  /**
+   * Default no-arg constructor. Sets the connect timeout to 1 second and read
+   * timeout to 5 seconds.
+   *
+   * @param baseUri The fully qualified REST resource context root formatted as
+   *                {@code [schema]://[host][:port]/[path]}
+   */
+  public AbstractRestClient(String baseUri) {
+    this.baseUri = baseUri;
     this.timoutConnect = TIMEOUT_CONNECT;
     this.timoutRead = TIMEOUT_READ;
   }
 
-  public AbstractRestClient(int timoutConnect, int timoutRead) {
+  /**
+   * New constructor.
+   *
+   * @param baseURI       The fully qualified REST resource context root
+   *                      formatted as {@code [schema]://[host][:port]/[path]}
+   * @param timoutConnect Connect timeout interval, in milliseconds.
+   * @param timoutRead    Read timeout interval, in milliseconds.
+   */
+  public AbstractRestClient(String baseURI, int timoutConnect, int timoutRead) {
+    this.baseUri = baseURI;
     this.timoutConnect = timoutConnect;
     this.timoutRead = timoutRead;
   }
@@ -204,13 +233,11 @@ public class AbstractRestClient {
    * Helper method to determine if the REST service is available or not. This
    * method tries to retrieve the `application.wadl` file.
    *
-   * @param baseUri The application base uri. This is the REST resource context
-   *                root.
    * @return if the `application.wadl` file can be downloaded
    */
-  protected final boolean isAvailable(URI baseUri) {
+  public final boolean isAvailable() {
     try {
-      buildTrustingClient().target(baseUri)
+      buildTrustingClient().target(new URI(baseUri))
         .path("application.wadl")
         .request()
         .get(String.class);
