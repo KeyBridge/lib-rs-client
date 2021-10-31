@@ -16,10 +16,12 @@
  * suppliers, if any. The intellectual and technical concepts contained herein
  * are proprietary.
  */
-package ch.keybridge.rs.client;
+package ch.keybridge.rs;
 
+import ch.keybridge.rs.filter.ClientLoggingFilter;
 import java.net.URI;
 import java.security.cert.X509Certificate;
+import java.util.Base64;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.net.ssl.*;
@@ -86,15 +88,15 @@ public class AbstractRestClient {
    */
   protected int timoutRead;
   /**
-   * If client logging should be enabled. Default is try.
+   * Enable or disable client logging. Default is enabled.
    */
-  protected boolean logging = true;
+  protected boolean clientLogging = true;
 
   /**
    * The web service base URI pattern.
    * <p>
-   * Developer note: This is the fully qualified REST resource context root
-   * formatted as {@code [schema]://[host][:port]/[path]}
+   * Developer note: This is the fully qualified REST context root formatted as
+   * {@code [schema]://[host][:port]/[path]}
    * <p>
    * For example If your application exposes REST resources under the
    * 'webresource' path, then this baseUri should read
@@ -106,8 +108,7 @@ public class AbstractRestClient {
    * Default no-arg constructor. Sets the connect timeout to 1 second and read
    * timeout to 5 seconds.
    *
-   * @param baseUri The fully qualified REST resource context root formatted as
-   *                {@code [schema]://[host][:port]/[path]}
+   * @param baseUri the base URI
    */
   public AbstractRestClient(String baseUri) {
     this.baseUri = baseUri;
@@ -118,8 +119,7 @@ public class AbstractRestClient {
   /**
    * New constructor.
    *
-   * @param baseURI       The fully qualified REST resource context root
-   *                      formatted as {@code [schema]://[host][:port]/[path]}
+   * @param baseURI       the base URI
    * @param timoutConnect Connect timeout interval, in milliseconds.
    * @param timoutRead    Read timeout interval, in milliseconds.
    */
@@ -130,12 +130,23 @@ public class AbstractRestClient {
   }
 
   /**
-   * Set the client logging status. Default is true.
+   * Enable or disable client logging. Default is enabled.
    *
-   * @param logging the client logging status
+   * @param clientLogging TRUE to enable, false to disable.
    */
-  public void setLogging(boolean logging) {
-    this.logging = logging;
+  public void setClientLogging(boolean clientLogging) {
+    this.clientLogging = clientLogging;
+  }
+
+  /**
+   * Enable or disable client logging. Default is enabled.
+   *
+   * @param clientLogging TRUE to enable, false to disable.
+   * @return the current client instance
+   */
+  public AbstractRestClient withClientLogging(boolean clientLogging) {
+    this.clientLogging = clientLogging;
+    return this;
   }
 
   /**
@@ -149,6 +160,18 @@ public class AbstractRestClient {
   }
 
   /**
+   * Set the Connect timeout interval, in milliseconds. Default is 1,000
+   * milliseconds = 1 seconds.
+   *
+   * @param timoutConnect The Connect timeout interval
+   * @return the current client instance
+   */
+  public AbstractRestClient withTimoutConnect(int timoutConnect) {
+    this.timoutConnect = timoutConnect;
+    return this;
+  }
+
+  /**
    * Set the Read timeout interval, in milliseconds. Default is 5,000
    * milliseconds = 5 seconds.
    *
@@ -156,6 +179,18 @@ public class AbstractRestClient {
    */
   public void setTimoutRead(int timoutRead) {
     this.timoutRead = timoutRead;
+  }
+
+  /**
+   * Set the Read timeout interval, in milliseconds. Default is 5,000
+   * milliseconds = 5 seconds.
+   *
+   * @param timoutRead The Read timeout interval
+   * @return the current client instance
+   */
+  public AbstractRestClient withTimoutRead(int timoutRead) {
+    this.timoutRead = timoutRead;
+    return this;
   }
 
   /**
@@ -168,7 +203,7 @@ public class AbstractRestClient {
    *
    * @return a Jersey HTTP client
    */
-  protected Client buildClient() {
+  protected final Client buildClient() {
     /**
      * Internal method to build a simple web-target attached to the
      * WEBSERVICE_BASE. The connect and read timeout are set.
@@ -179,7 +214,7 @@ public class AbstractRestClient {
     /**
      * If transaction logging is enabled the register the client logging filter.
      */
-    if (logging) {
+    if (clientLogging) {
       client.register(ClientLoggingFilter.class, ClientResponseFilter.class);
     }
     /**
@@ -208,7 +243,7 @@ public class AbstractRestClient {
    * @return a Jersey HTTP client
    * @throws Exception if TLSv1 is not supported
    */
-  protected Client buildTrustingClient() throws Exception {
+  protected final Client buildTrustingClient() throws Exception {
     /**
      * Set the default X509 Trust Manager to an instance of a fake class that
      * trust all certificates, even the self-signed ones.
@@ -226,26 +261,13 @@ public class AbstractRestClient {
     Client client = ClientBuilder.newBuilder().sslContext(sc).hostnameVerifier(allHostsValid).build();
     client.property(CONNECT_TIMEOUT, timoutConnect); // should immediately connect
     client.property(READ_TIMEOUT, timoutRead); // wait for processing
-    return client;
-  }
-
-  /**
-   * Helper method to determine if the REST service is available or not. This
-   * method tries to retrieve the `application.wadl` file.
-   *
-   * @return if the `application.wadl` file can be downloaded
-   */
-  public final boolean isAvailable() {
-    try {
-      buildTrustingClient().target(new URI(baseUri))
-        .path("application.wadl")
-        .request()
-        .get(String.class);
-      return true;
-    } catch (Exception e) {
-      LOG.log(Level.WARNING, "{0}/application.wadl is not available.  {1}", new Object[]{baseUri, e.getMessage()});
-      return false;
+    /**
+     * If transaction logging is enabled the register the client logging filter.
+     */
+    if (clientLogging) {
+      client.register(ClientLoggingFilter.class, ClientResponseFilter.class);
     }
+    return client;
   }
 
   /**
@@ -290,6 +312,37 @@ public class AbstractRestClient {
     public X509Certificate[] getAcceptedIssuers() {
       return new X509Certificate[]{};
     }
+  }
+
+  /**
+   * Helper method to determine if the REST service is available or not. This
+   * method tries to retrieve the `application.wadl` file.
+   *
+   * @return if the `application.wadl` file can be downloaded
+   */
+  public final boolean isAvailable() {
+    try {
+      buildTrustingClient().target(new URI(baseUri))
+        .path("application.wadl")
+        .request()
+        .get(String.class);
+      return true;
+    } catch (Exception e) {
+      LOG.log(Level.WARNING, "{0}/application.wadl is not available.  {1}", new Object[]{baseUri, e.getMessage()});
+      return false;
+    }
+  }
+
+  /**
+   * Internal helper method to encode a "Basic" authentication header string.
+   *
+   * @param user     the user name
+   * @param password the password
+   * @return a Basic encoded authentication string
+   */
+  protected String encodeBasicAuthentication(String user, String password) {
+    String credentialString = user + ":" + password;
+    return "Basic " + new String(Base64.getEncoder().encode(credentialString.getBytes()));
   }
 
 }

@@ -16,7 +16,7 @@
  * suppliers, if any. The intellectual and technical concepts contained herein
  * are proprietary.
  */
-package ch.keybridge.rs.client;
+package ch.keybridge.rs;
 
 /**
  * Copy of constant keys in org.glassfish.jersey.client.ClientProperties class.

@@ -12,7 +12,7 @@
  * A copy of these agreements may be obtained by sending a request
  * via email to info@caufield.org.
  */
-package ch.keybridge.rs.client;
+package ch.keybridge.rs.filter;
 
 import java.io.IOException;
 import java.util.logging.Level;

@@ -3,17 +3,21 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>keybridge.lib</groupId>
   <artifactId>rs-client</artifactId>
-  <version>1.1.0</version>
+  <version>1.2.0</version>
   <packaging>jar</packaging>
 
   <name>lib-rs-client</name>
   <description>Generic REST client resources and utilities.
+
+    Developer note: Use this library for stand-alone REST clients. e.g. for testing.
+    This library includes a working dependency tree for standalone JERSEY rest clients.
 
     This class is incorporated into other client implementations.
 
     History
     v1.0.0 - created 2020-02-04
     v1.1.0 - update abstract rest client to include baseUri, update constructors
+    v1.2.0 - refactor into compatible packages with lib-rs-common; dependency scope is compiled
 
   </description>
 
@@ -42,25 +46,25 @@
       <artifactId>jersey-client</artifactId>
       <version>${jersey.version}</version>
       <type>jar</type>
-      <scope>provided</scope>
+      <!--<scope>provided</scope>-->
     </dependency>
     <dependency>
       <groupId>org.glassfish.jersey.media</groupId>
       <artifactId>jersey-media-jaxb</artifactId>
       <version>${jersey.version}</version>
-      <scope>provided</scope>
+      <!--<scope>provided</scope>-->
     </dependency>
     <dependency>
       <groupId>org.glassfish.jersey.media</groupId>
       <artifactId>jersey-media-json-jackson</artifactId>
       <version>${jersey.version}</version>
-      <scope>provided</scope>
+      <!--<scope>provided</scope>-->
     </dependency>
     <dependency>
       <groupId>org.glassfish.jersey.inject</groupId>
       <artifactId>jersey-hk2</artifactId>
       <version>${jersey.version}</version>
-      <scope>test</scope>
+      <!--<scope>test</scope>-->
     </dependency>
 
     <dependency>
